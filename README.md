@@ -1,1 +1,1 @@
-# animated-octo-potato
+Store Rating Application
