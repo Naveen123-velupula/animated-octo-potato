@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    body { font-family: Arial, sans-serif; background: #dbd8da; padding: 20px; }
+    h1, h2 { text-align: center; }
+    .container { max-width: 400px; margin: auto; background: #70a2b9; padding: 20px; border-radius: 10px; }
+    form { margin-bottom: 30px; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, textarea, select { width: 80%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; background: #2575fc; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    .role-section { margin-bottom: 40px; }
+  </style>
+  <title>Admin Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, select, button { margin: 5px; padding: 6px; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
+  </style>
+  <title>Store Owner Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
+    input, button { margin: 6px; padding: 6px; }
+  </style>
+</head>
+<body>
+
+  <h1>🏪 Store Owner Dashboard</h1>
+
+  <!-- Update Password -->
+  <section>
+    <h3>🔑 Update Password</h3>
+    <form onsubmit="updatePassword(event)">
+      <input type="password" id="newPassword" placeholder="New Password" required><br>
+      <button type="submit">Update Password</button>
+    </form>
+  </section>
+
+  <!-- Store Rating Summary -->
+  <section>
+    <h3>⭐ Store Overview</h3>
+    <p id="storeInfo">Loading...</p>
+  </section>
+
+  <!-- Ratings Table -->
+  <section>
+    <h3>👥 Ratings Submitted by Users</h3>
+    <table id="ratingsTable">
+      <thead>
+        <tr><th>User Name</th><th>Email</th><th>Rating</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <button onclick="logout()">🚪 Logout</button>
+
+  <script>
+    const API = 'http://localhost:5000';
+    const token = localStorage.getItem("token");
+
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    }
+
+    async function updatePassword(e) {
+      e.preventDefault();
+      const newPassword = document.getElementById("newPassword").value;
+      const res = await fetch(`${API}/owner/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      if (res.ok) {
+        alert("Password updated successfully!");
+      } else {
+        alert("Error updating password.");
+      }
+    }
+
+    async function loadOwnerDashboard() {
+      const res = await fetch(`${API}/owner/store`, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      const data = await res.json();
+
+      
+      document.getElementById("storeInfo").innerText =
+        `Store: ${data.store.name}, Avg. Rating: ${data.store.avgRating || '0.0'}`;
+
+      
+      const rows = data.users.map(u => `
+        <tr>
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.rating}</td>
+        </tr>`).join('');
+
+      document.querySelector("#ratingsTable tbody").innerHTML = rows;
+    }
+
+    loadOwnerDashboard();
+  </script>
+
+</body>
+</html>

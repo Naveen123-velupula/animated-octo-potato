@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #dbd8da; padding: 20px; }
+    h1, h2 { text-align: center; }
+    .container { max-width: 500px; margin: auto; background: #70a2b9; padding: 20px; border-radius: 10px; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, textarea { width: 90%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; background: #2575fc; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Store Rating Web Application</h1>
+
+  <div class="container">
+    <div class="role-section">  
+      <h2>Signup / Login Form (Normal User)</h2>
+      <form id="signupForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="Naveen Velpula" minlength="3" maxlength="60" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="user@example.com" required>
+
+        <label for="address">Address</label>
+        <textarea id="address" name="address" maxlength="400" required>123 Main Street, Hyderabad</textarea>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" value="User@1234" 
+               pattern="(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,16}" 
+               title="8-16 chars, 1 uppercase, 1 special char" required><br>
+
+        <button type="submit">LogIn</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // This function is called when the form is submitted
+    async function login(event) {
+      event.preventDefault(); // Prevent page reload
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch('http://localhost:5000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('token', data.token);
+          const payload = JSON.parse(atob(data.token.split('.')[1]));
+
+          if (payload.role === 'admin') {
+            window.location.href = 'dashboard_admin.html';
+          } else if (payload.role === 'owner') {
+            window.location.href = 'dashboard_owner.html';
+          } else {
+            window.location.href = 'dashboard_user.html';
+          }
+        } else {
+          alert(data.message || "Login failed.");
+        }
+      } catch (error) {
+        console.error("Error during login:", error);
+        alert("Server error. Try again later.");
+      }
+    }
+
+    // Bind the form submission to the login function
+    document.getElementById("signupForm").addEventListener("submit", login);
+  </script>
+</body>
+</html>

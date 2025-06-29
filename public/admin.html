@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+    body { font-family: Arial, sans-serif; background: #dbd8da; padding: 20px; }
+    h1, h2 { text-align: center; }
+    .container { max-width: 400px; margin: auto; background: #70a2b9; padding: 20px; border-radius: 10px; }
+    form { margin-bottom: 30px; }
+    label { font-weight: bold; display: block; margin-top: 10px; }
+    input, textarea, select { width: 90%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; background: #2575fc; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    .role-section { margin-bottom: 40px; }
+  </style>
+  <title>Admin Dashboard</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, select, button { margin: 5px; padding: 6px; }
+    table, th, td { border: 1px solid #ccc; border-collapse: collapse; padding: 8px; }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome, System Administrator</h1>
+
+  <!-- DASHBOARD -->
+  <section>
+    <h3>📊 Platform Stats</h3>
+    <div id="stats"></div>
+  </section><br>
+
+  <!-- ADD USER -->
+  <section>
+    <h3>➕ Add New User</h3>
+    <form onsubmit="addUser(event)">
+      <input type="text" id="name" placeholder="Name" required minlength="20" maxlength="60">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="text" id="address" placeholder="Address" maxlength="400" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <select id="role">
+        <option value="user">Normal User</option>
+        <option value="admin">Admin User</option>
+        <option value="owner">Store Owner</option><br>
+      </select><br>
+      <button type="submit">Add User</button>
+    </form>
+  </section>
+
+
+  <section>
+    <h3>🏪 Add New Store</h3>
+    <form onsubmit="addStore(event)">
+      <input type="text" id="storeName" placeholder="Store Name" required>
+      <input type="email" id="storeEmail" placeholder="Store Email" required>
+      <input type="text" id="storeAddress" placeholder="Store Address" required>
+      <input type="number" id="ownerId" placeholder="Owner User ID" required><br>
+      <button type="submit">Add Store</button>
+    </form>
+  </section>
+
+ <section>
+    <h3>➕ All User</h3>
+    <form onsubmit="addUser(event)">
+      <input type="text" id="name" placeholder="Name" required minlength="20" maxlength="60">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="text" id="address" placeholder="Address" maxlength="400" required>
+      <input type="password" id="Avg Rating" placeholder="Avg Rating" required>
+      <select id="role">
+        <option value="user">1</option>
+        <option value="admin">2</option>
+        <option value="owner">3</option>
+        <option value="admin">4</option>
+        <option value="admin">5</option><br>
+      </select><br>
+      <button type="submit">submit</button>
+    </form>
+  </section>
+
+      
+
+
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h3>🏪 All Stores</h3>
+    <input type="text" id="filterStore" placeholder="Search by Name, Address" oninput="loadStores()">
+    <table id="storesTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Address</th><th>Average Rating</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <button onclick="logout()">🚪 Logout</button>
+
+  <script>
+    const API = 'http://localhost:5000';
+    const token = localStorage.getItem("token");
+
+    function logout() {
+      localStorage.removeItem("token");
+      location.href = "login.html";
+    }
+
+    async function loadStats() {
+      const res = await fetch(`${API}/admin/dashboard`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const data = await res.json();
+      document.getElementById("stats").innerHTML = `
+        <p>Total Users: ${data.total_users}</p>
+        <p>Total Stores: ${data.total_stores}</p>
+        <p>Total Ratings: ${data.total_ratings}</p>`;
+    }
+
+    async function addUser(e) {
+      e.preventDefault();
+      const body = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        address: document.getElementById("address").value,
+        role: document.getElementById("role").value
+      };
+      const res = await fetch(`${API}/admin/add-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify(body)
+      });
+      alert(await res.text());
+      loadUsers();
+    }
+
+    async function addStore(e) {
+      e.preventDefault();
+      const body = {
+        name: document.getElementById("storeName").value,
+        email: document.getElementById("storeEmail").value,
+        address: document.getElementById("storeAddress").value,
+        owner_id: document.getElementById("ownerId").value
+      };
+      const res = await fetch(`${API}/admin/add-store`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify(body)
+      });
+      alert(await res.text());
+      loadStores();
+    }
+
+    async function loadUsers() {
+      const search = document.getElementById("filterUser").value;
+      const res = await fetch(`${API}/admin/users?search=${search}`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const users = await res.json();
+      const rows = users.map(u => `
+        <tr>
+          <td>${u.name}</td><td>${u.email}</td>
+          <td>${u.address}</td><td>${u.role}</td>
+        </tr>`).join('');
+      document.querySelector("#usersTable tbody").innerHTML = rows;
+    }
+
+    async function loadStores() {
+      const search = document.getElementById("filterStore").value;
+      const res = await fetch(`${API}/admin/stores?search=${search}`, {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const stores = await res.json();
+      const rows = stores.map(s => `
+        <tr>
+          <td>${s.name}</td><td>${s.email}</td>
+          <td>${s.address}</td><td>${s.avg_rating || 0}</td>
+        </tr>`).join('');
+      document.querySelector("#storesTable tbody").innerHTML = rows;
+    }
+
+    // Load all initially
+    loadStats();
+    loadUsers();
+    loadStores();
+  </script>
+
+</body>
+</html>
